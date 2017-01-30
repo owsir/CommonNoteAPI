@@ -1,12 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
+using NoteApi.Models;
 
 namespace NoteApi
 {
@@ -34,6 +32,7 @@ namespace NoteApi
         // This method gets called by the runtime. Use this method to add services to the container
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddDbContext<MyContext>(options => options.UseMySql(Configuration.GetConnectionString("Mysql")));
             // Add framework services.
             services.AddApplicationInsightsTelemetry(Configuration);
 
@@ -41,7 +40,7 @@ namespace NoteApi
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public async void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddConsole(Configuration.GetSection("Logging"));
             loggerFactory.AddDebug();
@@ -51,6 +50,8 @@ namespace NoteApi
             app.UseApplicationInsightsExceptionTelemetry();
 
             app.UseMvc();
+
+            await SampleData.InitDb(app.ApplicationServices);
         }
     }
 }
